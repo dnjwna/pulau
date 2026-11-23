@@ -17,6 +17,7 @@ struct LockScreenPlayerView: View {
     @Default(.pulauLockScreenShowLyrics) private var showLyrics
     @Default(.pulauLockScreenWordHighlight) private var wordHighlight
     @Default(.pulauLockScreenHideAfterPauseMinutes) private var hideAfterMinutes
+    @Default(.pulauLockScreenStyle) private var style
 
     /// Set once playback has been paused for `hideAfterMinutes`.
     @State private var pausedTooLong = false
@@ -34,11 +35,16 @@ struct LockScreenPlayerView: View {
     var body: some View {
         ZStack {
             if visible {
-                card
-                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
+                Group {
+                    if style == LockScreenStyle.artwork.rawValue { artworkCard } else { card }
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
         }
-        .frame(width: PulauLockScreen.panelSize.width, height: PulauLockScreen.panelSize.height)
+        .frame(
+            width: LockScreenStyle.size(for: style).width,
+            height: LockScreenStyle.size(for: style).height
+        )
         .animation(.easeOut(duration: 0.3), value: visible)
         .preferredColorScheme(.dark)
         // Restarts whenever play/pause or the setting changes; cancelled automatically.
@@ -79,7 +85,7 @@ struct LockScreenPlayerView: View {
                 Spacer(minLength: 8)
                 if showLyrics { lyricLine }
                 Spacer(minLength: 8)
-                progress
+                progress(timesAbove: false)
                 controls
                     .padding(.top, 10)
             }
@@ -139,6 +145,112 @@ struct LockScreenPlayerView: View {
         }
     }
 
+    // MARK: Artwork style
+
+    /// Square card: the artwork fills the card, with a title chip and a
+    /// favourite button on top, and lyric / progress / controls over a
+    /// bottom gradient.
+    private var artworkCard: some View {
+        let size = LockScreenStyle.size(for: LockScreenStyle.artwork.rawValue)
+        let inset: CGFloat = 10
+        return ZStack {
+            // Outer frame, tinted by the artwork colour.
+            RoundedRectangle(cornerRadius: 40, style: .continuous)
+                .fill(tint.opacity(0.85))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 40, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                )
+
+            ZStack {
+                Image(nsImage: music.albumArt)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size.width - inset * 2, height: size.height - inset * 2)
+                    .clipped()
+
+                VStack(spacing: 0) {
+                    LinearGradient(colors: [.black.opacity(0.5), .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 90)
+                    Spacer(minLength: 0)
+                    LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom)
+                        .frame(height: showLyrics ? 190 : 160)
+                }
+
+                VStack(spacing: 0) {
+                    HStack(alignment: .center, spacing: 8) {
+                        titleChip
+                        Spacer(minLength: 0)
+                        if music.canFavoriteTrack {
+                            LockScreenControlButton(
+                                systemImage: music.isFavoriteTrack ? "heart.fill" : "heart",
+                                size: 15,
+                                style: .glass
+                            ) {
+                                music.toggleFavoriteTrack()
+                            }
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    if showLyrics {
+                        lyricLine
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.bottom, 8)
+                    }
+                    progress(timesAbove: true)
+                    HStack(spacing: 18) {
+                        LockScreenControlButton(systemImage: "backward.end.fill", size: 15, style: .glass) {
+                            music.previousTrack()
+                        }
+                        LockScreenControlButton(
+                            systemImage: music.isPlaying ? "pause.fill" : "play.fill",
+                            size: 18,
+                            prominent: true,
+                            style: .glass
+                        ) {
+                            music.togglePlay()
+                        }
+                        LockScreenControlButton(systemImage: "forward.end.fill", size: 15, style: .glass) {
+                            music.nextTrack()
+                        }
+                    }
+                    .padding(.top, 6)
+                }
+                .padding(14)
+            }
+            .frame(width: size.width - inset * 2, height: size.height - inset * 2)
+            .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        }
+        .frame(width: size.width, height: size.height)
+        .animation(.easeInOut(duration: 0.8), value: music.avgColor)
+    }
+
+    /// Small artwork thumbnail + title + artist in a translucent capsule.
+    private var titleChip: some View {
+        HStack(spacing: 8) {
+            Image(nsImage: music.albumArt)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 30, height: 30)
+                .clipShape(Circle())
+            VStack(alignment: .leading, spacing: 1) {
+                Text(music.songTitle)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                Text(music.artistName)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .lineLimit(1)
+        }
+        .padding(.leading, 4)
+        .padding(.trailing, 14)
+        .padding(.vertical, 4)
+        .background(Capsule().fill(Color.black.opacity(0.35)))
+        .overlay(Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+        .frame(maxWidth: 240, alignment: .leading)
+    }
+
     // MARK: Lyrics
 
     @ViewBuilder
@@ -188,7 +300,7 @@ struct LockScreenPlayerView: View {
 
     // MARK: Progress
 
-    private var progress: some View {
+    private func progress(timesAbove: Bool) -> some View {
         TimelineView(.animation(minimumInterval: 0.5, paused: !music.isPlaying || scrubFraction != nil)) { timeline in
             let duration = max(music.songDuration, 0)
             let playing = music.estimatedPlaybackPosition(at: timeline.date)
@@ -198,6 +310,7 @@ struct LockScreenPlayerView: View {
             let canSeek = duration > 0
 
             VStack(spacing: 5) {
+                if timesAbove { timeLabels(position: position, duration: duration) }
                 GeometryReader { geo in
                     let barHeight: CGFloat = (hoveringProgress || scrubFraction != nil) ? 7 : 4
                     ZStack(alignment: .leading) {
@@ -231,15 +344,19 @@ struct LockScreenPlayerView: View {
                     .animation(.easeOut(duration: 0.15), value: barHeight)
                 }
                 .frame(height: 14) // larger than the bar so it's easy to hit
-                HStack {
-                    Text(Self.format(position))
-                    Spacer()
-                    Text(duration > 0 ? "-" + Self.format(duration - position) : "--:--")
-                }
-                .font(.system(size: 10.5, weight: .medium, design: .rounded).monospacedDigit())
-                .foregroundStyle(.white.opacity(scrubFraction != nil ? 0.85 : 0.5))
+                if !timesAbove { timeLabels(position: position, duration: duration) }
             }
         }
+    }
+
+    private func timeLabels(position: Double, duration: Double) -> some View {
+        HStack {
+            Text(Self.format(position))
+            Spacer()
+            Text(duration > 0 ? "-" + Self.format(duration - position) : "--:--")
+        }
+        .font(.system(size: 10.5, weight: .medium, design: .rounded).monospacedDigit())
+        .foregroundStyle(.white.opacity(scrubFraction != nil ? 0.9 : 0.6))
     }
 
     // MARK: Controls
@@ -272,9 +389,12 @@ struct LockScreenPlayerView: View {
 }
 
 private struct LockScreenControlButton: View {
+    enum Style { case plain, glass }
+
     let systemImage: String
     var size: CGFloat
     var prominent = false
+    var style: Style = .plain
     let action: () -> Void
 
     @State private var hovering = false
@@ -287,11 +407,33 @@ private struct LockScreenControlButton: View {
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: prominent ? 46 : 36, height: prominent ? 46 : 36)
                 .background(
-                    Circle().fill(Color.white.opacity(prominent ? (hovering ? 0.24 : 0.16) : (hovering ? 0.12 : 0)))
+                    Circle().fill(fill)
                 )
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
+    }
+
+    private var fill: Color {
+        switch style {
+        case .plain:
+            return Color.white.opacity(prominent ? (hovering ? 0.24 : 0.16) : (hovering ? 0.12 : 0))
+        case .glass:
+            // Always visible over artwork; dark enough for the white glyph.
+            return Color.black.opacity(hovering ? 0.5 : 0.35)
+        }
+    }
+}
+
+/// Lock-screen widget layouts. Stored as the raw value in Defaults.
+enum LockScreenStyle: String, CaseIterable {
+    case card
+    case artwork
+
+    static func size(for raw: String) -> NSSize {
+        LockScreenStyle(rawValue: raw) == .artwork
+            ? NSSize(width: 360, height: 360)
+            : NSSize(width: 560, height: 212)
     }
 }

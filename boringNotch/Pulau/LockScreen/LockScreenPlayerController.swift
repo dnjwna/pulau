@@ -39,9 +39,15 @@ final class PulauLockScreen: ObservableObject {
     private var previewTask: Task<Void, Never>?
     private var observers = Set<AnyCancellable>()
 
-    static let panelSize = NSSize(width: 560, height: 212)
+    /// Current widget size; depends on the selected style.
+    static var panelSize: NSSize { LockScreenStyle.size(for: Defaults[.pulauLockScreenStyle]) }
 
     private init() {
+        Defaults.publisher(.pulauLockScreenStyle, options: [])
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in Task { @MainActor in self?.reposition() } }
+            .store(in: &observers)
+
         Defaults.publisher(.pulauLockScreenPlayerOffset, options: [])
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in Task { @MainActor in self?.reposition() } }

@@ -24,6 +24,7 @@ struct PulauSettingsView: View {
     @Default(.pulauLockScreenPlayerOffset) private var lockPlayerOffset
     @Default(.pulauLockScreenShowLyrics) private var lockShowLyrics
     @Default(.pulauLockScreenHideAfterPauseMinutes) private var lockHideAfter
+    @Default(.pulauLockScreenStyle) private var lockStyle
 
     @ObservedObject private var presence = PresenceMonitor.shared
 
@@ -95,6 +96,10 @@ struct PulauSettingsView: View {
                 Defaults.Toggle(key: .pulauLockScreenShowLyrics) { Text("Show the current lyric line") }
                 Defaults.Toggle(key: .pulauLockScreenWordHighlight) { Text("Highlight lyrics word by word") }
                     .disabled(!lockShowLyrics)
+                Picker("Style", selection: $lockStyle) {
+                    Text("Card").tag("card")
+                    Text("Artwork").tag("artwork")
+                }
                 Picker("Hide when paused for", selection: $lockHideAfter) {
                     Text("1 minute").tag(1)
                     Text("5 minutes").tag(5)
