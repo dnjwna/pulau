@@ -1,199 +1,75 @@
-<h1 align="center">
-  <br>
-  <a href="http://theboring.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Boring Notch" width="150"></a>
-  <br>
-  Boring Notch
-  <br>
-</h1>
-
+<h1 align="center">Pulau</h1>
 
 <p align="center">
-  <a title="Crowdin" target="_blank" href="https://crowdin.com/project/boring-notch"><img src="https://badges.crowdin.net/boring-notch/localized.svg"></a>
-  <img src="https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg" alt="TheBoringNotch Build & Test" style="margin-right: 10px;" />
-  <a href="https://discord.gg/c8JXA7qrPm">
-    <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
-  </a>
-  <a href="https://www.ko-fi.com/alexander5015">
-    <img src="https://srv-cdn.himpfen.io/badges/kofi/kofi-flat.svg" alt="Ko-Fi" />
-  </a>
+  <b>Your notch, finally useful.</b><br>
+  A free, open-source macOS notch app: synced lyrics, focus tools, an AI assistant and a lock-screen player.<br>
+  Built on <a href="https://github.com/TheBoredTeam/boring.notch">Boring Notch</a> (GPL-3.0).
 </p>
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/14815?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-14815" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/14815" alt="TheBoredTeam%2Fboring.notch |    Trendshift" width="250" height="55"/></a>
-</p>
-<!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
-
-Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support, a complete MacOS HUD replacement and more!
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
-</p>
-
-<!--https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040-->
----
-<!--## Table of Contents
-- [Installation](#installation)
-- [Usage](#usage)
-- [Roadmap](#-roadmap)
-- [Building from Source](#building-from-source)
-- [Contributing](#-contributing)
-- [Join our Discord Server](#join-our-discord-server)
-- [Star History](#star-history)
-- [Buy us a coffee!](#buy-us-a-coffee)
-- [Acknowledgments](#-acknowledgments)-->
-
-## Installation
-
-**System Requirements:**
-- macOS **14 Sonoma** or later
-- Apple Silicon or Intel Mac
+<!-- DEMO VIDEO: edit this file on GitHub and drag the MP4 here; GitHub will host it. -->
 
 ---
 
-### Option 1: Download and Install Manually
+**Pulau** (Indonesian for *island*) is a fork of Boring Notch. It keeps everything upstream does (music controls, file shelf, HUD replacement, calendar, battery, mirror) and adds the features below.
 
-<a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+## What's new in Pulau
 
-Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+| Feature | What it does |
+|---|---|
+| **Lyrics** | Karaoke view in the notch: time-synced lines auto-scroll and highlight, click a line to seek, adjustable sync offset. Lyrics come from [LRCLIB](https://lrclib.net) (free, no account): exact match by duration, then a scored search fallback that prefers synced lyrics. |
+| **Focus** | Pomodoro timer (wall-clock based, no drift), a persistent to-do list, and clipboard history (text only, kept in memory, skips items marked concealed by password managers). |
+| **Assistant** | Streaming chat with any OpenAI-compatible endpoint. Default is **Ollama on localhost** (free and offline). Presets for LM Studio, Groq, Gemini, OpenRouter and OpenAI. Clipboard quick actions: Summarize, Explain, To English, Fix grammar. API keys are stored in the macOS Keychain. |
+| **Lock-screen player** *(beta)* | A Now Playing widget in the middle of the lock screen: artwork, title, the current lyric line, progress and playback controls. While the Mac is locked, the Focus and Assistant tabs are hidden and text input is disabled. |
+| **Presence** *(experimental, off by default)* | On-device face *detection* pauses music when you walk away and resumes when you're back. It detects any face, not you specifically. Not a security feature and never unlocks anything. |
+| **Shortcuts** | `⌃⌥J` open the Assistant · `⌃⌥P` start/pause the focus timer (rebind in Settings → Pulau). |
 
-> [!IMPORTANT]
-> We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
->
-> You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
+## Build from source
 
----
+Requirements: macOS 15.6+, Xcode 26+.
 
-#### Recommended: Terminal (Always Works)
+1. Clone the repo and open `boringNotch.xcodeproj`.
+2. Signing uses **Sign to Run Locally**, so no Apple Developer account is needed.
+3. Select the **boringNotch** scheme and press `⌘R`.
+4. Open Settings → **Pulau** to configure tabs, the timer, the assistant and the lock-screen player.
 
-This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
-
-After moving Boring Notch to your Applications folder, run:
+### Free local AI (recommended)
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Boring Notch.app"
+brew install ollama
+ollama serve          # leave running
+ollama pull llama3.2  # ~2 GB; smaller options: qwen2.5:3b, gemma3:4b
 ```
 
-Then open the app normally.
+Then Settings → Pulau → Assistant → **Test connection**.
 
----
+Cloud providers (Gemini, Groq, …) work too: pick a preset, paste your API key, and choose a model. Response speed depends on the provider and model.
 
-#### Alternative: System Settings
+## Known limitations
 
-> [!NOTE]
-> This method doesn't work for all users. If this doesn't work, use the Terminal method above.
+- **The lock-screen player uses a private macOS API (SkyLight)**, the same one Boring Notch uses for "Show notch on lock screen". It may stop working after a macOS update.
+- **No Face ID–style unlock.** This is intentional: webcam face detection is not secure.
+- The focus timer is only visible in the open notch; there is no closed-notch countdown yet.
+- The assistant is text-only (no voice input yet).
+- **Don't use "Check for Updates".** The Sparkle feed still points at upstream Boring Notch and would replace Pulau. Automatic update checks are turned off.
+- Builds are not notarized. On first launch macOS will warn about an unidentified developer: right-click the app → **Open**.
 
-1. Try to open the app — you'll see a security warning.
-2. Click **OK** to dismiss it.
-3. Open **System Settings** > **Privacy & Security**.
-4. Scroll to the bottom and click **Open Anyway** next to the Boring Notch warning.
-5. Confirm if prompted.
+## Changes vs upstream
 
----
+New code lives in `boringNotch/Pulau/` (a synchronized Xcode folder, so new files are picked up automatically). Edited upstream files:
 
-### Option 2: Install via Homebrew
+- `enums/generic.swift`: new `NotchViews` cases
+- `ContentView.swift`: routes the new tabs
+- `components/Tabs/TabSelectionView.swift`, `TabButton.swift`: dynamic tab list (Focus/Assistant hidden while locked)
+- `components/Notch/BoringHeader.swift`: shows tabs when Pulau tabs are on
+- `components/Notch/BoringNotchWindow.swift`, `BoringNotchSkyLightWindow.swift`: key window only while a Pulau text field is active
+- `managers/MusicManager.swift`: lyrics pipeline replaced by `LyricsService`
+- `Shortcuts/ShortcutConstants.swift`, `boringNotchApp.swift`: new shortcuts, service bootstrap, lock/unlock hooks
+- `components/Settings/SettingsView.swift`: Pulau settings pane
+- `Info.plist`: Sparkle automatic checks off
+- `project.pbxproj`: `Pulau` folder group, display name
 
-You can also install using [Homebrew](https://brew.sh). The Homebrew installation automatically bypasses the macOS security warning described above.
+## Credits & license
 
-```bash
-brew install --cask TheBoredTeam/boring-notch/boring-notch
-```
+Pulau is a fork of [Boring Notch](https://github.com/TheBoredTeam/boring.notch) by TheBoredTeam and contributors; all upstream features and most of the app are their work. Lyrics are provided by [LRCLIB](https://lrclib.net). See `THIRD_PARTY_LICENSES` for bundled dependencies.
 
-## Usage
-
-- Launch the app, and voilà—your notch is now the coolest part of your screen.
-- Hover over the notch to see it expand and reveal all its secrets.
-- Use the controls to manage your music like a rockstar.
-- Click the star in your menu bar to customize your notch to your heart's content.
-
-## 📋 Roadmap
-- [x] Playback live activity 🎧
-- [x] Calendar integration 📆
-- [x] Reminders integration ☑️
-- [x] Mirror 📷
-- [x] Charging indicator and current percentage 🔋
-- [x] Customizable gesture control 👆🏻
-- [x] Shelf functionality with AirDrop 📚
-- [x] Notch sizing customization, finetuning on different display sizes 🖥️
-- [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
-- [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices) 
-- [ ] Weather integration ⛅️
-- [ ] Customizable Layout options 🛠️
-- [ ] Lock Screen Widgets 🔒
-- [ ] Extension system 🧩
-- [ ] Notifications (under consideration) 🔔
-<!-- - [ ] Clipboard history manager 📌 `Extension` -->
-<!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
-<!-- - [ ] Customizable function buttons 🎛️ -->
-<!-- - [ ] App switcher 🪄 -->
-
-<!-- ## 🧩 Extensions
-> [!NOTE]
-> We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released. -->
-
-## Building from Source
-
-### Prerequisites
-
-- **macOS 15.6 or later**
-- **Xcode 26 or later**
-
-### Installation
-
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/TheBoredTeam/boring.notch.git
-   cd boring.notch
-   ```
-
-2. **Open the Project in Xcode**:
-   ```bash
-   open boringNotch.xcodeproj
-   ```
-
-3. **Build and Run**:
-    - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!
-
-## 🤝 Contributing
-
-We’re all about good vibes and awesome contributions! Read [CONTRIBUTING.md](CONTRIBUTING.md) to learn how you can join the fun!
-
-## Join our Discord Server
-
-<a href="https://discord.gg/GvYcYpAKTu" target="_blank"><img src="https://iili.io/28m3GHv.png" alt="Join The Boring Server!" style="height: 60px !important;width: 217px !important;" ></a>
-
-## Star History
-<!-- BROKEN: GitHub now restricts the stargazer API for privacy reasons
-<a href="https://www.star-history.com/#TheBoredTeam/boring.notch&Timeline">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=TheBoredTeam/boring.notch&type=Timeline" />
- </picture>
-</a>
--->
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/TheBoredTeam/org-star-chart-updater/main/projects/boring.notch/chart-dark.svg">
-   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/TheBoredTeam/org-star-chart-updater/main/projects/boring.notch/chart-light.svg">
-   <img src="https://raw.githubusercontent.com/TheBoredTeam/org-star-chart-updater/main/projects/boring.notch/chart-light.svg" alt="TheBoredTeam/boring.notch GitHub star history">
- </picture>
-
-## Support us on Ko-fi!
-<!-- <a href="https://www.buymeacoffee.com/jfxh67wvfxq" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a> -->
-<a href="https://www.ko-fi.com/alexander5015" target="_blank"><img src="https://github.com/user-attachments/assets//a76175ef-7e93-475a-8b67-4922ba5964c2" alt="Support us on Ko-fi" style="height: 70px !important;width: 346px !important;" ></a>
-
-## 🎉 Acknowledgments
-
-We would like to express our gratitude to the authors and maintainers of the open-source projects that made this possible. 
-
-## Notable Projects
-- **[MediaRemoteAdapter](https://github.com/ungive/mediaremote-adapter)** –  An open-source project that allowed us to use the Now Playing source in macOS 15.4+
-- **[NotchDrop](https://github.com/Lakr233/NotchDrop)** – An open-source project that has been instrumental in developing the first version of the "Shelf" feature in Boring Notch.
-
-For a full list of licenses and attributions, please see the [Third-Party Licenses](./THIRD_PARTY_LICENSES.md) file.
-
-### Icon credits: [@maxtron95](https://github.com/maxtron95)
-### Website credits: [@himanshhhhuv](https://github.com/himanshhhhuv)
-
-- **SwiftUI**: For making us look like coding wizards.
-- **You**: For being awesome and checking out **boring.notch**!
-
+Licensed under **GPL-3.0**, the same as upstream (see `LICENSE`). If you distribute builds, you must also publish the source.
