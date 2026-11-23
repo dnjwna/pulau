@@ -58,6 +58,10 @@ extension Defaults.Keys {
     // MARK: Lock-screen player
     static let pulauLockScreenPlayer = Key<Bool>("pulauLockScreenPlayer", default: true)
     static let pulauLockScreenShowLyrics = Key<Bool>("pulauLockScreenShowLyrics", default: true)
+    /// Light up the active lyric line word by word (timing estimated unless the lyrics have word tags).
+    static let pulauLockScreenWordHighlight = Key<Bool>("pulauLockScreenWordHighlight", default: true)
+    /// Blurred album art filling the whole lock screen behind the player.
+    static let pulauLockScreenArtBackdrop = Key<Bool>("pulauLockScreenArtBackdrop", default: true)
     /// Vertical offset from the screen centre, in points. Positive = higher.
     static let pulauLockScreenPlayerOffset = Key<Double>("pulauLockScreenPlayerOffset", default: 0)
 

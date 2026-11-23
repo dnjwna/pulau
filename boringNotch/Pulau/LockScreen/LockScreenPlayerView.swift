@@ -14,6 +14,7 @@ struct LockScreenPlayerView: View {
     @ObservedObject private var music = MusicManager.shared
     @Default(.pulauLyricsOffset) private var lyricsOffset
     @Default(.pulauLockScreenShowLyrics) private var showLyrics
+    @Default(.pulauLockScreenWordHighlight) private var wordHighlight
 
     private var hasTrack: Bool {
         !music.songTitle.isEmpty && (music.isPlaying || !music.isPlayerIdle)
@@ -105,13 +106,11 @@ struct LockScreenPlayerView: View {
     @ViewBuilder
     private var lyricLine: some View {
         if !music.lyricLines.isEmpty {
-            TimelineView(.animation(minimumInterval: 0.2, paused: !music.isPlaying)) { timeline in
+            TimelineView(.animation(minimumInterval: wordHighlight ? 0.08 : 0.2, paused: !music.isPlaying)) { timeline in
                 let elapsed = music.estimatedPlaybackPosition(at: timeline.date) + lyricsOffset
                 let index = LyricsService.activeIndex(in: music.lyricLines, at: elapsed)
-                let current = index.map { music.lyricLines[$0].text } ?? ""
-                Text(current.isEmpty ? "♪" : current)
+                lyricText(index: index, elapsed: elapsed)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.92))
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .id(index ?? -1)
@@ -126,6 +125,27 @@ struct LockScreenPlayerView: View {
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.45))
         }
+    }
+
+    /// The active line, with already-sung words bright and upcoming ones dim
+    /// when word highlight is on. Word timing is estimated unless the lyrics
+    /// carry enhanced-LRC word tags (see WordTiming.swift).
+    private func lyricText(index: Int?, elapsed: Double) -> Text {
+        guard let index, !music.lyricLines[index].text.isEmpty else {
+            return Text(verbatim: "♪").foregroundColor(.white.opacity(0.92))
+        }
+        guard wordHighlight else {
+            return Text(verbatim: music.lyricLines[index].text).foregroundColor(.white.opacity(0.92))
+        }
+        let timing = LyricsService.wordTimings(for: index, in: music.lyricLines, songDuration: music.songDuration)
+        let sung = LyricsService.sungWordCount(timing.words, at: elapsed)
+        var result = Text(verbatim: "")
+        for (i, word) in timing.words.enumerated() {
+            let piece = i == timing.words.count - 1 ? word.text : word.text + " "
+            result = result + Text(verbatim: piece)
+                .foregroundColor(i < sung ? .white : .white.opacity(0.38))
+        }
+        return result
     }
 
     // MARK: Progress

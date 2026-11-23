@@ -22,6 +22,7 @@ struct PulauSettingsView: View {
     @Default(.pulauLyricsOffset) private var lyricsOffset
     @Default(.clipboardHistoryLimit) private var clipboardLimit
     @Default(.pulauLockScreenPlayerOffset) private var lockPlayerOffset
+    @Default(.pulauLockScreenShowLyrics) private var lockShowLyrics
 
     @ObservedObject private var presence = PresenceMonitor.shared
 
@@ -90,7 +91,10 @@ struct PulauSettingsView: View {
                         customBadge(text: "Beta")
                     }
                 }
+                Defaults.Toggle(key: .pulauLockScreenArtBackdrop) { Text("Fill the lock screen with album art") }
                 Defaults.Toggle(key: .pulauLockScreenShowLyrics) { Text("Show the current lyric line") }
+                Defaults.Toggle(key: .pulauLockScreenWordHighlight) { Text("Highlight lyrics word by word") }
+                    .disabled(!lockShowLyrics)
                 HStack {
                     Text("Vertical position")
                     Slider(value: $lockPlayerOffset, in: -400...400, step: 10)
@@ -105,7 +109,7 @@ struct PulauSettingsView: View {
             } header: {
                 Text("Lock screen")
             } footer: {
-                footnote("Shows a Now Playing widget in the middle of the lock screen while music is playing. Uses a private macOS API, so it may stop working after a macOS update. To-dos, clipboard and Assistant are never shown while locked.")
+                footnote("Shows a Now Playing widget in the middle of the lock screen while music is playing. Uses a private macOS API, so it may stop working after a macOS update. Word timing is estimated from each line's length unless the lyrics include word timestamps. To-dos, clipboard and Assistant are never shown while locked.")
             }
 
             Section {

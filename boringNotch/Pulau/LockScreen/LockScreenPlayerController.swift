@@ -34,6 +34,8 @@ final class PulauLockScreen: ObservableObject {
     @Published private(set) var previewing = false
 
     private var panel: LockScreenPlayerPanel?
+    /// Full-screen, click-through album-art backdrop (below the card).
+    private var backdrop: LockScreenPlayerPanel?
     private var isDelegated = false
     private var hideTask: Task<Void, Never>?
     private var previewTask: Task<Void, Never>?
@@ -115,12 +117,18 @@ final class PulauLockScreen: ObservableObject {
 
         let panel = self.panel ?? makePanel()
         self.panel = panel
+        let backdrop = self.backdrop ?? makeBackdrop()
+        self.backdrop = backdrop
         reposition()
 
-        panel.alphaValue = 0
-        panel.orderFrontRegardless()
+        // Backdrop first so the card is ordered above it.
+        for window in [backdrop, panel] {
+            window.alphaValue = 0
+            window.orderFrontRegardless()
+        }
 
         if onLockScreen, !isDelegated {
+            SkyLightOperator.shared.delegateWindow(backdrop)
             SkyLightOperator.shared.delegateWindow(panel)
             isDelegated = true
         }
@@ -128,27 +136,30 @@ final class PulauLockScreen: ObservableObject {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.35
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            backdrop.animator().alphaValue = 1
             panel.animator().alphaValue = 1
         }
     }
 
     private func hide() {
-        guard let panel else { return }
+        let windows = [backdrop, panel].compactMap { $0 }
+        guard !windows.isEmpty else { return }
         hideTask?.cancel()
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.2
-            panel.animator().alphaValue = 0
+            windows.forEach { $0.animator().alphaValue = 0 }
         }
         // Wait for the unlock transition before leaving the lock-screen space,
         // otherwise the widget flashes on the desktop.
         hideTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(250))
-            guard !Task.isCancelled, let self, let panel = self.panel else { return }
+            guard !Task.isCancelled, let self else { return }
+            let windows = [self.backdrop, self.panel].compactMap { $0 }
             if self.isDelegated {
-                SkyLightOperator.shared.undelegateWindow(panel)
+                windows.forEach { SkyLightOperator.shared.undelegateWindow($0) }
                 self.isDelegated = false
             }
-            panel.orderOut(nil)
+            windows.forEach { $0.orderOut(nil) }
         }
     }
 
@@ -166,11 +177,30 @@ final class PulauLockScreen: ObservableObject {
         return panel
     }
 
+    private func makeBackdrop() -> LockScreenPlayerPanel {
+        let frame = NSScreen.screens.first?.frame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+        let backdrop = LockScreenPlayerPanel(
+            contentRect: frame,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        backdrop.level = .mainMenu + 3
+        backdrop.ignoresMouseEvents = true
+        let host = NSHostingView(rootView: LockScreenBackdropView())
+        host.frame = NSRect(origin: .zero, size: frame.size)
+        host.autoresizingMask = [.width, .height]
+        backdrop.contentView = host
+        return backdrop
+    }
+
     /// Centers the widget horizontally on the primary display (where macOS
     /// draws the lock screen UI), with a user-adjustable vertical offset.
     private func reposition() {
-        guard let panel, let screen = NSScreen.screens.first else { return }
+        guard let screen = NSScreen.screens.first else { return }
         let frame = screen.frame
+        backdrop?.setFrame(frame, display: true)
+        guard let panel else { return }
         let size = Self.panelSize
         let offset = CGFloat(Defaults[.pulauLockScreenPlayerOffset])
         let origin = NSPoint(

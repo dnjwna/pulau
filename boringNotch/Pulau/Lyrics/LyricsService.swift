@@ -9,9 +9,18 @@
 
 import Foundation
 
+struct LyricWord: Equatable, Hashable {
+    /// Absolute start time in seconds (same clock as `LyricLine.time`).
+    let time: Double
+    let text: String
+}
+
 struct LyricLine: Equatable, Hashable {
     let time: Double
     let text: String
+    /// Per-word start times, only when the source has enhanced LRC word tags
+    /// (`<mm:ss.xx>word`). Empty otherwise; see `LyricsService.wordTimings`.
+    var words: [LyricWord] = []
 
     /// Empty LRC lines are instrumental gaps.
     var isInstrumental: Bool { text.isEmpty }
@@ -170,7 +179,10 @@ actor LyricsService {
             let matches = stamp.matches(in: line, range: full)
             guard let last = matches.last else { continue }
             let textStart = last.range.location + last.range.length
-            let text = ns.substring(from: textStart).trimmingCharacters(in: .whitespaces)
+            let rawText = ns.substring(from: textStart).trimmingCharacters(in: .whitespaces)
+            let (text, enhancedWords) = parseWordTags(rawText, offset: offset)
+            // Word times are absolute, so they only make sense for a line with one timestamp.
+            let words = matches.count == 1 ? enhancedWords : []
 
             for m in matches {
                 let minutes = Double(ns.substring(with: m.range(at: 1))) ?? 0
@@ -183,7 +195,7 @@ actor LyricsService {
                 }
                 // LRC spec: positive offset shifts lyrics earlier.
                 let time = max(0, minutes * 60 + seconds + fraction - offset)
-                lines.append(LyricLine(time: time, text: text))
+                lines.append(LyricLine(time: time, text: text, words: words))
             }
         }
 
