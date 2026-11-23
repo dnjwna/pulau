@@ -28,9 +28,10 @@ struct CheckForUpdatesView: View {
         self.checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: updater)
     }
     
+    // Pulau: no update feed of its own yet. Never run Sparkle here (the
+    // upstream feed would replace Pulau with Boring Notch); link to Releases.
     var body: some View {
-        Button("Check for Updates…", action: updater.checkForUpdates)
-            .disabled(!checkForUpdatesViewModel.canCheckForUpdates)
+        Link("Check GitHub Releases…", destination: URL(string: "https://github.com/dnjwna/pulau/releases")!)
     }
 }
 
