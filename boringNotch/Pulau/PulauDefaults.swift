@@ -64,6 +64,8 @@ extension Defaults.Keys {
     static let pulauLockScreenPlayerOffset = Key<Double>("pulauLockScreenPlayerOffset", default: 0)
     /// Lock-screen widget layout: "card" (wide) or "artwork" (square, art fills the card).
     static let pulauLockScreenStyle = Key<String>("pulauLockScreenStyle", default: "card")
+    /// Liquid Glass for the Artwork style's frame, chip and buttons (macOS 26+ only).
+    static let pulauLockScreenGlass = Key<Bool>("pulauLockScreenGlass", default: true)
     /// Hide the lock-screen card after this many minutes paused. 0 = never.
     static let pulauLockScreenHideAfterPauseMinutes = Key<Int>("pulauLockScreenHideAfterPauseMinutes", default: 5)
 

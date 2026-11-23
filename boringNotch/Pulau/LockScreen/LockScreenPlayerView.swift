@@ -18,6 +18,7 @@ struct LockScreenPlayerView: View {
     @Default(.pulauLockScreenWordHighlight) private var wordHighlight
     @Default(.pulauLockScreenHideAfterPauseMinutes) private var hideAfterMinutes
     @Default(.pulauLockScreenStyle) private var style
+    @Default(.pulauLockScreenGlass) private var glass
 
     /// Set once playback has been paused for `hideAfterMinutes`.
     @State private var pausedTooLong = false
@@ -154,9 +155,15 @@ struct LockScreenPlayerView: View {
         let size = LockScreenStyle.size(for: LockScreenStyle.artwork.rawValue)
         let inset: CGFloat = 10
         return ZStack {
-            // Outer frame, tinted by the artwork colour.
-            RoundedRectangle(cornerRadius: 40, style: .continuous)
-                .fill(tint.opacity(0.85))
+            // Outer frame: Liquid Glass (macOS 26+) lightly tinted by the
+            // artwork colour, or a solid artwork-coloured frame as fallback.
+            Color.clear
+                .pulauGlass(
+                    glass,
+                    in: RoundedRectangle(cornerRadius: 40, style: .continuous),
+                    tint: tint.opacity(0.35),
+                    fallback: tint.opacity(0.85)
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 40, style: .continuous)
                         .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
@@ -185,7 +192,8 @@ struct LockScreenPlayerView: View {
                             LockScreenControlButton(
                                 systemImage: music.isFavoriteTrack ? "heart.fill" : "heart",
                                 size: 15,
-                                style: .glass
+                                style: .glass,
+                                useGlass: glass
                             ) {
                                 music.toggleFavoriteTrack()
                             }
@@ -199,18 +207,19 @@ struct LockScreenPlayerView: View {
                     }
                     progress(timesAbove: true)
                     HStack(spacing: 18) {
-                        LockScreenControlButton(systemImage: "backward.end.fill", size: 15, style: .glass) {
+                        LockScreenControlButton(systemImage: "backward.end.fill", size: 15, style: .glass, useGlass: glass) {
                             music.previousTrack()
                         }
                         LockScreenControlButton(
                             systemImage: music.isPlaying ? "pause.fill" : "play.fill",
                             size: 18,
                             prominent: true,
-                            style: .glass
+                            style: .glass,
+                            useGlass: glass
                         ) {
                             music.togglePlay()
                         }
-                        LockScreenControlButton(systemImage: "forward.end.fill", size: 15, style: .glass) {
+                        LockScreenControlButton(systemImage: "forward.end.fill", size: 15, style: .glass, useGlass: glass) {
                             music.nextTrack()
                         }
                     }
@@ -246,8 +255,8 @@ struct LockScreenPlayerView: View {
         .padding(.leading, 4)
         .padding(.trailing, 14)
         .padding(.vertical, 4)
-        .background(Capsule().fill(Color.black.opacity(0.35)))
-        .overlay(Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+        .pulauGlass(glass, in: Capsule(), fallback: Color.black.opacity(0.35))
+        .overlay(Capsule().strokeBorder(Color.white.opacity(glass ? 0.06 : 0.12), lineWidth: 1))
         .frame(maxWidth: 240, alignment: .leading)
     }
 
@@ -395,6 +404,8 @@ private struct LockScreenControlButton: View {
     var size: CGFloat
     var prominent = false
     var style: Style = .plain
+    /// Use Liquid Glass for `.glass` buttons when the OS supports it.
+    var useGlass = false
     let action: () -> Void
 
     @State private var hovering = false
@@ -406,9 +417,7 @@ private struct LockScreenControlButton: View {
                 .foregroundStyle(.white)
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: prominent ? 46 : 36, height: prominent ? 46 : 36)
-                .background(
-                    Circle().fill(fill)
-                )
+                .pulauGlass(style == .glass && useGlass, in: Circle(), fallback: fill)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -422,6 +431,27 @@ private struct LockScreenControlButton: View {
         case .glass:
             // Always visible over artwork; dark enough for the white glyph.
             return Color.black.opacity(hovering ? 0.5 : 0.35)
+        }
+    }
+}
+
+private extension View {
+    /// Liquid Glass in `shape` on macOS 26+ when `enabled`; otherwise a plain
+    /// `fallback` fill (also used on older macOS versions).
+    @ViewBuilder
+    func pulauGlass<S: Shape>(_ enabled: Bool, in shape: S, tint: Color? = nil, fallback: Color) -> some View {
+        // Kept as a lone `#available` condition: result builders only support
+        // availability checks that are the sole condition of an `if`.
+        if #available(macOS 26.0, *) {
+            if enabled, let tint {
+                self.glassEffect(.regular.tint(tint), in: shape)
+            } else if enabled {
+                self.glassEffect(.regular, in: shape)
+            } else {
+                self.background(shape.fill(fallback))
+            }
+        } else {
+            self.background(shape.fill(fallback))
         }
     }
 }

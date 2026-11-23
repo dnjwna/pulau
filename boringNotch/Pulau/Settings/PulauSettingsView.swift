@@ -100,6 +100,15 @@ struct PulauSettingsView: View {
                     Text("Card").tag("card")
                     Text("Artwork").tag("artwork")
                 }
+                if lockStyle == "artwork" {
+                    if #available(macOS 26.0, *) {
+                        Defaults.Toggle(key: .pulauLockScreenGlass) { Text("Liquid Glass frame and buttons") }
+                    } else {
+                        Text("Liquid Glass needs macOS 26 or later.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Picker("Hide when paused for", selection: $lockHideAfter) {
                     Text("1 minute").tag(1)
                     Text("5 minutes").tag(5)
