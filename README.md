@@ -25,7 +25,7 @@
 
 ## Install
 
-Download the latest `Pulau-x.y.z.zip` from [Releases](https://github.com/dnjwna/pulau/releases), unzip it and move **Pulau.app** to `/Applications`. Requires macOS 14 Sonoma or later.
+Download the latest `Pulau-x.y.z.zip` from [Releases](https://github.com/dnjwna/pulau/releases), unzip it and move **Pulau.app** to `/Applications`. Requires macOS 15 Sequoia or later (the bundled MediaRemoteAdapter framework is built for macOS 15).
 
 The app is not notarized (no paid Apple Developer account), so macOS blocks it on first launch. Open **System Settings → Privacy & Security**, scroll down, click **Open Anyway** next to Pulau and confirm with your password. You only need to do this once.
 

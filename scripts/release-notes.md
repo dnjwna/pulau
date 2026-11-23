@@ -15,7 +15,7 @@ First public beta of **Pulau**, a free and open-source notch app for macOS, buil
 2. Open it. macOS will block it the first time because the app is not notarized (no paid Apple Developer account).
 3. Go to **System Settings → Privacy & Security**, scroll down, click **Open Anyway** next to Pulau, and confirm with your password. You only need to do this once.
 
-Requirements: macOS 14 Sonoma or later. Architectures: {{ARCHS}}.
+Requirements: macOS 15 Sequoia or later. Architectures: {{ARCHS}}.
 
 ## Known limitations
 
