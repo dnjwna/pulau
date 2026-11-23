@@ -67,8 +67,12 @@ SHA256="$(shasum -a 256 "$ZIP" | awk '{print $1}')"
 ARCHS="$(lipo -archs "$BUILD/$APP_NAME.app/Contents/MacOS/"* 2>/dev/null | head -n 1 || true)"
 
 NOTES="$BUILD/notes.md"
+CHANGES_FILE="$ROOT/scripts/changes/$VERSION.md"
+[[ -f "$CHANGES_FILE" ]] || CHANGES_FILE=/dev/null
 sed -e "s/{{VERSION}}/$VERSION/g" -e "s/{{SHA256}}/$SHA256/g" -e "s/{{ARCHS}}/${ARCHS:-unknown}/g" \
-  "$ROOT/scripts/release-notes.md" > "$NOTES"
+  "$ROOT/scripts/release-notes.md" \
+  | awk -v changes="$CHANGES_FILE" '/\{\{CHANGES\}\}/ { while ((getline line < changes) > 0) print line; next } { print }' \
+  > "$NOTES"
 
 echo "==> Publishing ${TAG}..."
 gh release create "$TAG" "$ZIP" \

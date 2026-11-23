@@ -19,7 +19,7 @@
 | **Lyrics** | Karaoke view in the notch: time-synced lines auto-scroll and highlight, click a line to seek, adjustable sync offset. Lyrics come from [LRCLIB](https://lrclib.net) (free, no account): exact match by duration, then a scored search fallback that prefers synced lyrics. |
 | **Focus** | Pomodoro timer (wall-clock based, no drift), a persistent to-do list, and clipboard history (text only, kept in memory, skips items marked concealed by password managers). |
 | **Assistant** | Streaming chat with any OpenAI-compatible endpoint. Default is **Ollama on localhost** (free and offline). Presets for LM Studio, Groq, Gemini, OpenRouter and OpenAI. Clipboard quick actions: Summarize, Explain, To English, Fix grammar. API keys are stored in the macOS Keychain. |
-| **Lock-screen player** *(beta)* | A Now Playing widget in the middle of the lock screen: artwork, title, the current lyric line, progress and playback controls. While the Mac is locked, the Focus and Assistant tabs are hidden and text input is disabled. |
+| **Lock-screen player** *(beta)* | A Now Playing widget in the middle of the lock screen, in two styles: **Card** (wide) or **Artwork** (square, the artwork fills the card; Liquid Glass frame and buttons on macOS 26+). Shows the current lyric line lighting up word by word, a click/drag-to-seek progress bar and playback controls; the card is tinted by the artwork colour and hides itself after a long pause (1/5/15 min or never). While the Mac is locked, the Focus and Assistant tabs are hidden and text input is disabled. |
 | **Presence** *(experimental, off by default)* | On-device face *detection* pauses music when you walk away and resumes when you're back. It detects any face, not you specifically. Not a security feature and never unlocks anything. |
 | **Shortcuts** | `⌃⌥J` open the Assistant · `⌃⌥P` start/pause the focus timer (rebind in Settings → Pulau). |
 
@@ -53,6 +53,10 @@ Cloud providers (Gemini, Groq, …) work too: pick a preset, paste your API key,
 ## Known limitations
 
 - **The lock-screen player uses a private macOS API (SkyLight)**, the same one Boring Notch uses for "Show notch on lock screen". It may stop working after a macOS update.
+- **Word-by-word lyric timing is estimated** from each line's length, because LRCLIB usually only has line timings. Exact word timing is used only when the lyrics include word timestamps (enhanced LRC).
+- **The favourite (heart) button** appears only for players that support it (Apple Music, YouTube Music). Spotify is not supported: its AppleScript interface has no "like" command.
+- **Liquid Glass** needs macOS 26 or later; older versions use a solid frame.
+- No full-screen album art on the lock screen: a full-screen window there covers the macOS clock and password field and blocks typing the password, so it was removed.
 - **No Face ID–style unlock.** This is intentional: webcam face detection is not secure.
 - The focus timer is only visible in the open notch; there is no closed-notch countdown yet.
 - The assistant is text-only (no voice input yet).
@@ -78,7 +82,7 @@ New code lives in `boringNotch/Pulau/` (a synchronized Xcode folder, so new file
 
 ## Releasing
 
-`scripts/release.sh <version>` builds a Release app (ad-hoc signed), zips it as `Pulau-<version>.zip` and publishes a GitHub pre-release with `scripts/release-notes.md`. Needs the GitHub CLI (`gh auth login`).
+`scripts/release.sh <version>` builds a Release app (ad-hoc signed), zips it as `Pulau-<version>.zip` and publishes a GitHub pre-release with `scripts/release-notes.md`; if `scripts/changes/<version>.md` exists, it is inserted as the "What changed" section. Needs the GitHub CLI (`gh auth login`).
 
 ## Credits & license
 

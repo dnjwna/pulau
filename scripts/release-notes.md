@@ -1,11 +1,13 @@
-First public beta of **Pulau**, a free and open-source notch app for macOS, built on [Boring Notch](https://github.com/TheBoredTeam/boring.notch) (GPL-3.0).
+**Pulau** is a free and open-source notch app for macOS, built on [Boring Notch](https://github.com/TheBoredTeam/boring.notch) (GPL-3.0). This is a beta.
+
+{{CHANGES}}
 
 ## What's new in Pulau
 
 - **Lyrics** in the notch: time-synced karaoke view from LRCLIB, click a line to seek, sync offset.
 - **Focus**: Pomodoro timer, to-do list, clipboard history.
 - **Assistant**: streaming chat with any OpenAI-compatible endpoint (Ollama by default, free and local; presets for Gemini, Groq, OpenRouter, OpenAI, LM Studio).
-- **Lock-screen player** *(beta)*: large Now Playing widget with artwork, current lyric line and controls.
+- **Lock-screen player** *(beta)*: Now Playing widget in the middle of the lock screen (Card or Artwork style), with the current lyric line, seek bar and controls.
 - **Presence** *(experimental, off by default)*: pauses music when no face is detected. Not a security feature.
 - Plus everything Boring Notch does.
 
@@ -20,6 +22,8 @@ Requirements: macOS 15 Sequoia or later. Architectures: {{ARCHS}}.
 ## Known limitations
 
 - The lock-screen player uses a private macOS API and may break after a macOS update.
+- Word-by-word lyric timing is estimated unless the lyrics include word timestamps.
+- The favourite button is not available for Spotify.
 - No automatic updates yet: check this Releases page for new versions.
 - Pulau uses its own bundle ID, so it does not share settings with Boring Notch. Run only one of the two at a time; both draw in the notch.
 
