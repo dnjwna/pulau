@@ -83,6 +83,12 @@ final class PulauLockScreen: ObservableObject {
         hide()
     }
 
+    /// Called by the card view: when the card is hidden (nothing playing, or
+    /// paused for a long time) its window lets clicks through.
+    func setCardInteractive(_ interactive: Bool) {
+        panel?.ignoresMouseEvents = !interactive
+    }
+
     // MARK: Preview (Settings)
 
     /// Shows the widget on the normal desktop for a few seconds so the user can

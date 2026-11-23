@@ -23,6 +23,7 @@ struct PulauSettingsView: View {
     @Default(.clipboardHistoryLimit) private var clipboardLimit
     @Default(.pulauLockScreenPlayerOffset) private var lockPlayerOffset
     @Default(.pulauLockScreenShowLyrics) private var lockShowLyrics
+    @Default(.pulauLockScreenHideAfterPauseMinutes) private var lockHideAfter
 
     @ObservedObject private var presence = PresenceMonitor.shared
 
@@ -94,6 +95,12 @@ struct PulauSettingsView: View {
                 Defaults.Toggle(key: .pulauLockScreenShowLyrics) { Text("Show the current lyric line") }
                 Defaults.Toggle(key: .pulauLockScreenWordHighlight) { Text("Highlight lyrics word by word") }
                     .disabled(!lockShowLyrics)
+                Picker("Hide when paused for", selection: $lockHideAfter) {
+                    Text("1 minute").tag(1)
+                    Text("5 minutes").tag(5)
+                    Text("15 minutes").tag(15)
+                    Text("Never").tag(0)
+                }
                 HStack {
                     Text("Vertical position")
                     Slider(value: $lockPlayerOffset, in: -400...400, step: 10)

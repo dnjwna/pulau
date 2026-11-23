@@ -62,6 +62,8 @@ extension Defaults.Keys {
     static let pulauLockScreenWordHighlight = Key<Bool>("pulauLockScreenWordHighlight", default: true)
     /// Vertical offset from the screen centre, in points. Positive = higher.
     static let pulauLockScreenPlayerOffset = Key<Double>("pulauLockScreenPlayerOffset", default: 0)
+    /// Hide the lock-screen card after this many minutes paused. 0 = never.
+    static let pulauLockScreenHideAfterPauseMinutes = Key<Int>("pulauLockScreenHideAfterPauseMinutes", default: 5)
 
     // MARK: Presence (experimental, non-security)
     static let presenceEnabled = Key<Bool>("presenceEnabled", default: false)
