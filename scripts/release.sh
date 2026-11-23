@@ -39,7 +39,7 @@ if gh release view "$TAG" >/dev/null 2>&1; then
   fail "release $TAG already exists"
 fi
 
-echo "==> Building $APP_NAME $VERSION (Release, ad-hoc signed)…"
+echo "==> Building $APP_NAME $VERSION (Release, ad-hoc signed)..."
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
 if ! xcodebuild \
@@ -59,7 +59,7 @@ fi
 BUILT_APP="$(find "$BUILD/DerivedData/Build/Products/Release" -maxdepth 1 -name '*.app' | head -n 1)"
 [[ -n "$BUILT_APP" ]] || fail "no .app found in build products"
 
-echo "==> Packaging…"
+echo "==> Packaging..."
 ditto "$BUILT_APP" "$BUILD/$APP_NAME.app"
 codesign --verify --deep --strict "$BUILD/$APP_NAME.app" || fail "code signature check failed"
 ditto -c -k --sequesterRsrc --keepParent "$BUILD/$APP_NAME.app" "$ZIP"
@@ -70,7 +70,7 @@ NOTES="$BUILD/notes.md"
 sed -e "s/{{VERSION}}/$VERSION/g" -e "s/{{SHA256}}/$SHA256/g" -e "s/{{ARCHS}}/${ARCHS:-unknown}/g" \
   "$ROOT/scripts/release-notes.md" > "$NOTES"
 
-echo "==> Publishing $TAG…"
+echo "==> Publishing ${TAG}..."
 gh release create "$TAG" "$ZIP" \
   --title "$APP_NAME $VERSION (beta)" \
   --notes-file "$NOTES" \
