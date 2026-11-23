@@ -1,0 +1,64 @@
+# Xcode
+*.xcuserstate
+*.xcuserdata
+*.xcscheme
+*.xcuserdatad
+*.pbxuser
+*.xccheckout
+*.xcscheme
+*.xcplayground
+*.xcuserdatad
+*.xctest
+*.xcuserdata
+*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
+
+# CocoaPods
+Pods/
+podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# Derived data
+DerivedData/
+
+# Build output
+build/
+*.app
+*.dSYM
+
+# Temporary files
+*.swp
+*.swo
+*.tmp
+*.log
+
+# Other
+*.DS_Store
+*.vscode/
+*.idea/
+
+# User-specific files
+*.xcuserdatad/
+*.xcscheme
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcuserdata
+
+# Build artifacts
+*.ipa
+*.xcarchive
+*.dSYM
+
+
+# Pulau: local-only folders (not part of the source repo)
+/video/
+/video-reel/
+/video-reel-16x9/
+.DS_Store
+.claude/
+.agents/
+skills-lock.json
