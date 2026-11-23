@@ -91,7 +91,6 @@ struct PulauSettingsView: View {
                         customBadge(text: "Beta")
                     }
                 }
-                Defaults.Toggle(key: .pulauLockScreenArtBackdrop) { Text("Fill the lock screen with album art") }
                 Defaults.Toggle(key: .pulauLockScreenShowLyrics) { Text("Show the current lyric line") }
                 Defaults.Toggle(key: .pulauLockScreenWordHighlight) { Text("Highlight lyrics word by word") }
                     .disabled(!lockShowLyrics)

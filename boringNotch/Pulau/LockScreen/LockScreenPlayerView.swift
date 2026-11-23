@@ -115,8 +115,8 @@ struct LockScreenPlayerView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .id(index ?? -1)
                     .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .offset(y: 6)),
-                        removal: .opacity
+                        insertion: .opacity.combined(with: .offset(y: 4)),
+                        removal: .identity
                     ))
                     .animation(.easeOut(duration: 0.25), value: index)
             }
