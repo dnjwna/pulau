@@ -23,8 +23,6 @@ struct PulauSettingsView: View {
     @Default(.clipboardHistoryLimit) private var clipboardLimit
     @Default(.pulauLockScreenPlayerOffset) private var lockPlayerOffset
     @Default(.pulauLockScreenShowLyrics) private var lockShowLyrics
-    @Default(.pulauLockScreenArtBackdrop) private var lockBackdrop
-    @Default(.pulauLockScreenBackdropLayer) private var lockBackdropLayer
 
     @ObservedObject private var presence = PresenceMonitor.shared
 
@@ -92,21 +90,6 @@ struct PulauSettingsView: View {
                         Text("Show player on the lock screen")
                         customBadge(text: "Beta")
                     }
-                }
-                Defaults.Toggle(key: .pulauLockScreenArtBackdrop) {
-                    HStack {
-                        Text("Fill the lock screen with album art")
-                        customBadge(text: "Experimental")
-                    }
-                }
-                if lockBackdrop {
-                    Picker("Backdrop layer", selection: $lockBackdropLayer) {
-                        Text("Lowest").tag("desktop")
-                        Text("Normal").tag("normal")
-                    }
-                    Text("If the clock or password field disappears, unlock with Touch ID and turn this off. Typing the password may not work while it is covered.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
                 Defaults.Toggle(key: .pulauLockScreenShowLyrics) { Text("Show the current lyric line") }
                 Defaults.Toggle(key: .pulauLockScreenWordHighlight) { Text("Highlight lyrics word by word") }
