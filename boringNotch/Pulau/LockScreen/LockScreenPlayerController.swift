@@ -34,7 +34,14 @@ final class PulauLockScreen: ObservableObject {
     @Published private(set) var previewing = false
 
     private var panel: LockScreenPlayerPanel?
-    private var isDelegated = false
+    /// EXPERIMENTAL full-screen, click-through album-art backdrop. Only
+    /// created while its toggle is on: when off there is no extra window at
+    /// all over the lock screen. A previous version at a high window level
+    /// covered the macOS clock/password field and blocked typing the password.
+    private var backdrop: LockScreenPlayerPanel?
+    /// Windows currently moved to the lock-screen space via SkyLight.
+    private var delegated: [NSWindow] = []
+    private var onLockScreen = false
     private var hideTask: Task<Void, Never>?
     private var previewTask: Task<Void, Never>?
     private var observers = Set<AnyCancellable>()
@@ -54,6 +61,23 @@ final class PulauLockScreen: ObservableObject {
                     guard let self, self.locked else { return }
                     change.newValue ? self.show(onLockScreen: true) : self.hide()
                 }
+            }
+            .store(in: &observers)
+
+        Defaults.publisher(.pulauLockScreenArtBackdrop, options: [])
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self, self.panel?.isVisible == true else { return }
+                    change.newValue ? self.attachBackdrop() : self.detachBackdrop()
+                }
+            }
+            .store(in: &observers)
+
+        Defaults.publisher(.pulauLockScreenBackdropLayer, options: [])
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { @MainActor in self?.backdrop?.level = Self.backdropLevel }
             }
             .store(in: &observers)
 
@@ -113,26 +137,84 @@ final class PulauLockScreen: ObservableObject {
         hideTask?.cancel()
         hideTask = nil
 
+        self.onLockScreen = onLockScreen
         let panel = self.panel ?? makePanel()
         self.panel = panel
         reposition()
 
         panel.alphaValue = 0
         panel.orderFrontRegardless()
-
-        if onLockScreen, !isDelegated {
-            SkyLightOperator.shared.delegateWindow(panel)
-            isDelegated = true
-        }
+        delegateIfNeeded(panel)
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.35
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             panel.animator().alphaValue = 1
         }
+
+        if Defaults[.pulauLockScreenArtBackdrop] { attachBackdrop() }
+    }
+
+    private func delegateIfNeeded(_ window: NSWindow) {
+        guard onLockScreen, !delegated.contains(where: { $0 === window }) else { return }
+        SkyLightOperator.shared.delegateWindow(window)
+        delegated.append(window)
+    }
+
+    private func undelegate(_ window: NSWindow) {
+        guard let index = delegated.firstIndex(where: { $0 === window }) else { return }
+        SkyLightOperator.shared.undelegateWindow(window)
+        delegated.remove(at: index)
+    }
+
+    // MARK: Backdrop (experimental)
+
+    /// Lowest = just above the desktop picture; Normal = regular app level.
+    /// Both are far below the level that broke password entry before.
+    static var backdropLevel: NSWindow.Level {
+        switch Defaults[.pulauLockScreenBackdropLayer] {
+        case "normal": return .normal
+        default: return NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopWindow)) + 1)
+        }
+    }
+
+    private func attachBackdrop() {
+        guard backdrop == nil, let screen = NSScreen.screens.first else { return }
+        let frame = screen.frame
+        let window = LockScreenPlayerPanel(
+            contentRect: frame,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        window.level = Self.backdropLevel
+        window.ignoresMouseEvents = true
+        let host = NSHostingView(rootView: LockScreenBackdropView())
+        host.frame = NSRect(origin: .zero, size: frame.size)
+        host.autoresizingMask = [.width, .height]
+        window.contentView = host
+        window.setFrame(frame, display: true)
+        window.alphaValue = 0
+        window.orderFrontRegardless()
+        backdrop = window
+        delegateIfNeeded(window)
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.5
+            window.animator().alphaValue = 1
+        }
+    }
+
+    private func detachBackdrop() {
+        guard let window = backdrop else { return }
+        backdrop = nil
+        undelegate(window)
+        window.orderOut(nil)
     }
 
     private func hide() {
+        // The backdrop goes first and immediately: it is the window that can
+        // get in the way of the system lock UI.
+        detachBackdrop()
         guard let panel else { return }
         hideTask?.cancel()
         NSAnimationContext.runAnimationGroup { context in
@@ -144,11 +226,9 @@ final class PulauLockScreen: ObservableObject {
         hideTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(250))
             guard !Task.isCancelled, let self, let panel = self.panel else { return }
-            if self.isDelegated {
-                SkyLightOperator.shared.undelegateWindow(panel)
-                self.isDelegated = false
-            }
+            self.undelegate(panel)
             panel.orderOut(nil)
+            self.onLockScreen = false
         }
     }
 
@@ -169,8 +249,10 @@ final class PulauLockScreen: ObservableObject {
     /// Centers the widget horizontally on the primary display (where macOS
     /// draws the lock screen UI), with a user-adjustable vertical offset.
     private func reposition() {
-        guard let panel, let screen = NSScreen.screens.first else { return }
+        guard let screen = NSScreen.screens.first else { return }
         let frame = screen.frame
+        backdrop?.setFrame(frame, display: true)
+        guard let panel else { return }
         let size = Self.panelSize
         let offset = CGFloat(Defaults[.pulauLockScreenPlayerOffset])
         let origin = NSPoint(
